@@ -12,7 +12,7 @@ def pyshader(func, w, h):
 
 # Функция, возвращающая черный цвет для всех пикселей
 def func(x, y):
-    task = 6
+    task = 2
     #1 (Малевич)
     if task == 1:
         if x < 0.1 or x > 0.9 or y < 0.1 or y > 0.9:
@@ -126,57 +126,57 @@ def func(x, y):
         def noise(x, y):
             return (math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1 #псевдослучайное значение в диапазоне от 0 до 1
 
-        def val_noise(x, y):
+        def calculate_noise(coord_x, coord_y):
             # Преобразование координат в целые числа
-            x0 = int(x)
-            y0 = int(y)
+            int_x = int(coord_x)
+            int_y = int(coord_y)
             # Следующие целые координаты
-            x1 = x0 + 1
-            y1 = y0 + 1
+            next_x = int_x + 1
+            next_y = int_y + 1
             # Дробные части координат
-            s = x - x0
-            t = y - y0
+            frac_x = coord_x - int_x
+            frac_y = coord_y - int_y
             # Кубическая интерполяция для плавных переходов
-            s = s * s * (3.0 - 2.0 * s)
-            t = t * t * (3.0 - 2.0 * t)
+            frac_x = frac_x * frac_x * (3.0 - 2.0 * frac_x)
+            frac_y = frac_y * frac_y * (3.0 - 2.0 * frac_y)
             # Получение шумовых значений в углах ячейки
-            n00 = noise(x0, y0)
-            n01 = noise(x0, y1)
-            n10 = noise(x1, y0)
-            n11 = noise(x1, y1)
+            noise_00 = noise(int_x, int_y)
+            noise_01 = noise(int_x, next_y)
+            noise_10 = noise(next_x, int_y)
+            noise_11 = noise(next_x, next_y)
             # Линейная интерполяция вдоль оси X
-            ix0 = n00 + (n10 - n00) * s
-            ix1 = n01 + (n11 - n01) * s
+            interp_x0 = noise_00 + (noise_10 - noise_00) * frac_x
+            interp_x1 = noise_01 + (noise_11 - noise_01) * frac_x
             # Линейная интерполяция вдоль оси Y
-            return ix0 + (ix1 - ix0) * t
+            return interp_x0 + (interp_x1 - interp_x0) * frac_y
 
         # Параметры генерации шума
-        octaves = 5  # Количество октав шума
-        persistence = 0.5  # Коэффициент затухания амплитуды
-        scale = 5.0  # Масштабирование координат
+        num_octaves = 5  # Количество октав шума
+        decay_rate = 0.5  # Коэффициент затухания амплитуды
+        noise_scale = 5.0  # Масштабирование координат
         # Инициализация переменных
-        total = 0.0  # Общая сумма шума
-        amplitude = 1.0  # Начальная амплитуда
-        frequency = 1.0  # Начальная частота
-        max_value = 0.0  # Максимальная возможная амплитуда
+        noise_sum = 0.0  # Общая сумма шума
+        current_amplitude = 1.0  # Начальная амплитуда
+        current_frequency = 1.0  # Начальная частота
+        max_amplitude = 0.0  # Максимальная возможная амплитуда
         # Цикл по октавам
-        for _ in range(octaves):
+        for _ in range(num_octaves):
             # Масштабирование координат для текущей октавы
-            tx = x * scale * frequency
-            ty = y * scale * frequency
+            scaled_x = x * noise_scale * current_frequency
+            scaled_y = y * noise_scale * current_frequency
             # Добавление шума с учетом амплитуды
-            total += val_noise(tx, ty) * amplitude
+            noise_sum += calculate_noise(scaled_x, scaled_y) * current_amplitude
             # Обновление максимальной амплитуды
-            max_value += amplitude
+            max_amplitude += current_amplitude
             # Уменьшение амплитуды и увеличение частоты для следующей октавы
-            amplitude *= persistence
-            frequency *= 2.0
+            current_amplitude *= decay_rate
+            current_frequency *= 2.0
             # Нормализация шума
-        total /= max_value
+        noise_sum /= max_amplitude
         # Применение квадратичной функции для плавных переходов
-        total = total ** 2
+        noise_sum = noise_sum ** 2
         # Возвращение результата
-        return total, total, 255
+        return noise_sum, noise_sum, 255
 
     else:
         print("Такого нет")
