@@ -1,12 +1,11 @@
 from math import ceil
 
+
 def main(z, y, x):
     total_sum = 0
     n = len(z)
-    for i in range(1, n):
+    for i in range(1, n+1):
         idx = n + 1 - ceil(i / 4)
-        print(i)
-        print(idx)
         f = 5 * ((z[idx - 1]) ** 2)
         s = 96 * y[idx - 1]
         t = 40 * ((x[n + 1 - i - 1]) ** 3)
