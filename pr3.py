@@ -136,22 +136,63 @@ file.close()
 
 #5.3
 def task5_3():
+    # Импортируем модуль ctypes для работы с целочисленными типами
     from ctypes import c_uint32
-
+    # Функция для расшифровки блока данных
     def decrypt(v, k):
+        """
+        Эта функция реализует алгоритм расшифровки TEA (Tiny Encryption Algorithm).
+
+        v список из двух целых чисел (блок зашифрованных данных)
+        k ключ шифрования
+        """
+        # Преобразуем входные данные в беззнаковые целые числа типа uint32
         v0, v1 = c_uint32(v[0]), c_uint32(v[1])
+
+        # Константа дельта для алгоритма TEA
         delta = 0x9e3779b9
+
+        # Разбиваем ключ на четыре части
         k0, k1, k2, k3 = k[0], k[1], k[2], k[3]
+
+        # Инициализируем переменную total значением 32*delta
         total = c_uint32(delta * 32)
+
+        # Цикл выполнения 32 раундов расшифровки
         for i in range(32):
-            v1.value -= ((v0.value << 4) + k2) ^ (v0.value + total.value) ^ ((v0.value >> 5) + k3)
-            v0.value -= ((v1.value << 4) + k0) ^ (v1.value + total.value) ^ ((v1.value >> 5) + k1)
+            # Выполняем операцию расшифровки для первого значения
+            v1.value -= (
+                                (v0.value << 4) + k2  # Сдвиг влево на 4 бита и сложение с k2
+                        ) ^ (
+                                v0.value + total.value  # Сложение с total
+                        ) ^ (
+                                (v0.value >> 5) + k3  # Сдвиг вправо на 5 бит и сложение с k3
+                        )
+
+            # Выполняем аналогичную операцию для второго значения
+            v0.value -= (
+                                (v1.value << 4) + k0
+                        ) ^ (
+                                v1.value + total.value
+                        ) ^ (
+                                (v1.value >> 5) + k1
+                        )
+
+            # Уменьшаем значение total на delta
             total.value -= delta
+
+        # Возвращаем расшифрованные значения
         return v0.value, v1.value
 
+    # Функция преобразования строки в шестнадцатеричное число
     def hex_to_uint32(hex_str):
-        return int(hex_str, 16)
+        """
+        Преобразует строку в формате шестнадцатеричного числа в целое число.
+        hex_str строка в шестнадцатеричном формате
+        """
+        return int(hex_str, 16)  # Преобразование строки в целое число
 
+    # Зашифрованное сообщение в виде списка строк
     e_message = [
         "E3238557", "6204A1F8", "E6537611", "174E5747",
         "5D954DA8", "8C2DFE97", "2911CB4C", "2CB7C66B",
@@ -164,14 +205,30 @@ def task5_3():
         "97C5E4E9", "B1C26A21", "DD4A3463", "6B71162F",
         "8C075668", "7975D565", "6D95A700", "7272E637"
     ]
+
+    # Ключ для расшифровки
     key = [0, 4, 5, 1]
+
+    # Преобразовываем зашифрованное сообщение в список целых чисел
     e_data = [hex_to_uint32(i) for i in e_message]
+
+    # Список для хранения расшифрованных данных
     d_data = []
+
+    # Расшифровываем блоки данных попарно
     for i in range(0, len(e_data), 2):
+        # Формируем блок из двух элементов
         e_block = [e_data[i], e_data[i + 1]]
+
+        # Расшифровываем блок
         d_block = decrypt(e_block, key)
+
+        # Добавляем результат в список расшифрованных данных
         d_data.append(d_block)
+
+    # Выводим расшифрованные символы
     for v0, v1 in d_data:
+        # Преобразуем целые числа обратно в символы и выводим их
         print(f"{chr(v0)}{chr(v1)}", end='')
 
 task5_3()
@@ -363,27 +420,40 @@ def task7_1():
     }
 
     def play_game():
+        # Начинаем игру с комнаты 'room1'
         current_label = 'room1'
+
+        # Основной цикл игры
         while True:
+            # Получаем текущую комнату по её метке
             current_room = rooms.get(current_label)
+
+            # Если комната не найдена, выводим ошибку и завершаем игру
             if not current_room:
                 print("Ошибка: комната не найдена.")
                 break
 
+            # Выводим название и описание текущей комнаты
             print("\n" + current_room['name'])
             print(current_room['description'])
 
+            # Получаем доступные действия в текущей комнате
             actions = current_room.get('actions', [])
+
+            # Если действий нет, игра завершается
             if not actions:
                 print("\nКонец игры.")
                 break
 
+            # Выводим все доступные действия с их номерами
             for index, action in enumerate(actions, 1):
                 print(f"{index}. {action['text']}")
 
+            # Цикл для выбора действия
             while True:
                 choice = input("> ")
                 try:
+                    # Преобразуем ввод в число и проверяем, что оно в пределах доступных действий
                     choice_index = int(choice) - 1
                     if 0 <= choice_index < len(actions):
                         selected_action = actions[choice_index]
@@ -391,13 +461,17 @@ def task7_1():
                     else:
                         print("Неверный выбор. Попробуйте снова.")
                 except ValueError:
+                    # Если ввод не является числом, просим ввести номер снова
                     print("Пожалуйста, введите номер.")
 
+            # Если у действия есть сообщение, выводим его
             if selected_action['message']:
                 print(selected_action['message'])
 
+            # Переходим к следующей комнате, указанной в действии
             current_label = selected_action['next_label']
 
+    # Запуск игры
     play_game()
 
 """task7_1()"""
@@ -606,48 +680,59 @@ def task7_3():
 
     def find_dead_ends(rooms):
         """
-        Находит тупиковые комнаты в игровом мире.
-        :param rooms: Словарь комнат.
-        :return: Список тупиковых комнат.
+        Функция находит тупиковые комнаты в графе комнат.
         """
-        # Построение обратного графа
+
+
+        # Создаем обратный граф, чтобы определить достижимость каждой комнаты от выходной комнаты.
         reverse_graph = defaultdict(list)
         for room_label, room_info in rooms.items():
+            # Проходимся по действиям текущей комнаты
             for action in room_info['actions']:
+                # Получаем метку следующей комнаты по данному действию
                 next_label = action['next_label']
+                # Добавляем текущую комнату в список соседей обратной связи для следующей комнаты
                 reverse_graph[next_label].append(room_label)
 
-        # Поиск всех комнат, из которых можно добраться до выхода
-        visited = set()
-        queue = deque()
-        start_label = 'room10'  # Выходная комната
+
+        # Инициализация множества посещенных комнат
+        visited = set()  # Множество для отслеживания посещённых комнат
+        queue = deque()  # Очередь для обхода в ширину
+
+        # Начинаем с выходной комнаты ('room10'), предполагая, что она есть в списке комнат
+        start_label = 'room10'
         if start_label in rooms:
-            visited.add(start_label)
-            queue.append(start_label)
+            visited.add(start_label)  # Помечаем выходную комнату как посещённую
+            queue.append(start_label)  # Добавляем её в очередь для начала обхода
+
 
         while queue:
-            current_label = queue.popleft()
-            for neighbor in reverse_graph.get(current_label, []):
-                if neighbor not in visited:
-                    visited.add(neighbor)
-                    queue.append(neighbor)
+            current_label = queue.popleft()  # Извлекаем первую комнату из очереди
+            # Для каждой соседней комнаты проверяем возможность достижения
+            for neighbor in reverse_graph.get(current_label, []):  # Получаем соседей через обратный граф
+                if neighbor not in visited:  # Если сосед ещё не был посещён
+                    visited.add(neighbor)  # Помечаем его как посещённый
+                    queue.append(neighbor)  # Добавляем в очередь для дальнейшего обхода
 
-        # Находим комнаты, которые недостижимы из выхода
-        all_rooms = set(rooms.keys())
-        unreachable = all_rooms - visited
 
-        # Находим комнаты с одним выходом (тупики)
-        single_exit = [label for label in rooms if len(rooms[label]['actions']) == 1]
+        # Все комнаты, которые не были достигнуты во время обхода, считаются недостижимыми
+        all_rooms = set(rooms.keys())  # Все возможные комнаты
+        unreachable = all_rooms - visited  # Комнаты, которые невозможно достичь
 
-        # Объединяем недостижимые комнаты и комнаты с одним выходом
+
+        # Тупиками считаем комнаты, из которых возможен только один переход (один выход)
+        single_exit = [label for label in rooms
+                       if len(rooms[label]['actions']) == 1]  # Фильтруем комнаты с одним действием
+
+        # Объединяем найденные тупики и недостижимые комнаты в одно множество
         dead_ends = unreachable.union(set(single_exit))
 
-        # Убираем входную комнату из списка тупиков
-        dead_ends.discard('room1')
+        dead_ends.discard('room1')  # Удаляем 'room1', если она присутствует в множестве
 
+        # Возвращаем отсортированный список тупиковых комнат
         return sorted(dead_ends)
 
-    # Находим тупиковые комнаты
+    # Пример вызова функции для нахождения тупиковых комнат
     dead_ends = find_dead_ends(rooms)
     print("\nНайдены тупиковые комнаты:", dead_ends)
 
