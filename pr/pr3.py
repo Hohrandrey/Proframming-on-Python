@@ -130,7 +130,7 @@ my_print("Hello,", "world!", sep=" ", end="!\n")
 my_print("This is a custom print function.")
 my_print("This", "is", "a", "custom", "print", "function.", sep=" ", end="\n")
 
-file = open("123yt64ryfheiuowsuy.txt", 'w')
+file = open("../123yt64ryfheiuowsuy.txt", 'w')
 my_print(123, file=file)
 file.close()
 
