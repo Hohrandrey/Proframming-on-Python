@@ -1,3 +1,5 @@
+"""
+#1
 def x_0(word_1, first, second):
     if word_1 == "LESS":
         return first
@@ -5,57 +7,84 @@ def x_0(word_1, first, second):
         return second
 
 
-def x_1(word_2, first, second, third):
-    if word_2 == "PONY":
+def x_1(age_1, first, second):
+    if age_1 == 1965:
         return first
-    if word_2 == "C++":
+    if age_1 == 1958:
         return second
-    if word_2 == "C++":
-
 
 
 def x_2(age_2, first, second, third):
-    if word_1 == "NCL":
+    if age_2 == 1990:
         return first
-    if word_1 == "EAGLE":
+    if age_2 == 2018:
         return second
-    if word_1 == "COBOL":
+    if age_2 == 2005:
         return third
 
 
 def x_3(word_2, first, second, third):
-    if word_2 == "SAGE":
+    if word_2 == "PONY":
         return first
-    if word_2 == "MQL5":
+    if word_2 == "C++":
         return second
-    if word_2 == "REXX":
+    if word_2 == "MIRAH":
         return third
 
 
 def main(array):
-    result = (
+    result = x_1(
+        array[1],
         x_2(
             array[2],
-            x_1(
-                array[1],
-                x_3(array[3], 0, 1, 2),
-                x_0(array[0], 3, 4, 5)
-            ),
-            x_3(
-                array[3],
-                x_0(array[0], 6, 7, 8),
-                x_0(array[0], 9, 10, 11),
-                12
-            ),
-            13
-        )
+            x_0(array[0], 0, 1),
+            x_3(array[3], 2, 3, 4),
+            x_3(array[3], 5, 6, 7)
+        ),
+        x_2(array[2], 8, 9, 10)
     )
     return result
 
+"""
+
+#2
+tuple = (
+    {1965, 1990, 'LESS'},
+    {1965, 1990, 'ANTLR'},
+    {1965, 2018, 'PONY'},
+    {1965, 2018, 'C++'},
+    {1965, 2018, 'MIRAH'},
+    {1965, 2005, 'PONY'},
+    {1965, 2005, 'C++'},
+    {1965, 2005, 'MIRAH'},
+    {1958, 1990},
+    {1958, 2018},
+    {1958, 2005}
+)
+
+
+def main(r):
+    s = set(r)
+    return [i for i in range(len(tuple)) if not (len(tuple[i] - s))][0]
 
 if __name__ == "__main__":
-    print("main([2010, 1970, 'NCL', 'REXX']) = ", main([2010, 1970, 'NCL', 'REXX']))
-    print("main([1987, 1970, 'COBOL', 'SAGE']) =", main([1987, 1970, 'COBOL', 'SAGE']))
-    print("main([1975, 1970, 'NCL', 'SAGE']) =", main([1975, 1970, 'NCL', 'SAGE']))
-    print("main([1975, 1970, 'EAGLE', 'SAGE']) =", main([1975, 1970, 'EAGLE', 'SAGE']))
-    print("main([1975, 1990, 'NCL', 'SAGE']) =", main([1975, 1990, 'NCL', 'SAGE']))
+    print(
+        "main(['LESS', 1965, 2018, 'MIRAH']) = ",
+        main(['LESS', 1965, 2018, 'MIRAH'])
+    )
+    print(
+        "main(['LESS', 1958, 2005, 'PONY']) =",
+        main(['LESS', 1958, 2005, 'PONY'])
+    )
+    print(
+        "main(['LESS', 1965, 2005, 'C++']) =",
+        main(['LESS', 1965, 2005, 'C++'])
+    )
+    print(
+        "main(['ANTLR', 1965, 2018, 'C++']) =",
+        main(['ANTLR', 1965, 2018, 'C++'])
+    )
+    print(
+        "main(['ANTLR', 1958, 2018, 'C++']) =",
+        main(['ANTLR', 1958, 2018, 'C++'])
+    )
