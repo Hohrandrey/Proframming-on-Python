@@ -133,7 +133,7 @@ top_bottom_padding = 2
 sprite_map = generate_sprite_map(rows, cols, n, m, padding, side_padding, top_bottom_padding)
 plot_sprite_map(sprite_map)"""
 
-"""
+
 #2.5
 
 import numpy as np
@@ -165,15 +165,12 @@ def grow_tree(attraction_points, initial_node, dk, di, D, steps):
     points = np.copy(attraction_points)
 
     for _ in range(steps):
-        # Шаг 2: Поглощение точек
         points = absorb_points(nodes, points, dk)
         if len(points) == 0:
             break
 
-        # Шаг 3: Поиск множеств влияния
         influence_sets = find_influence_sets(nodes, points, di)
 
-        # Шаг 4: Рост новых узлов
         new_nodes = []
         for idx, S_v in influence_sets.items():
             if S_v:
@@ -204,7 +201,7 @@ def plot_trees(trees):
     ax.set_yticks([])
     plt.show()
 
-def generate_initial_positions(num_trees, width, height, min_distance):
+def generate_initial_positions(num_trees, width, height):
     positions = []
     zone_width = width / num_trees
     for i in range(num_trees):
@@ -224,7 +221,7 @@ D = 10
 steps = 100
 
 # Начальные позиции с учетом минимального расстояния
-initial_positions = generate_initial_positions(num_trees, width, height, min_distance)
+initial_positions = generate_initial_positions(num_trees, width, height)
 
 # Генерация
 trees = []
@@ -242,7 +239,7 @@ for i in range(num_trees):
 
 # Визуализация
 plot_trees(trees)
-"""
+
 
 #2.6
 import numpy as np
