@@ -262,6 +262,7 @@ def visualize_project_structure(project_path='.'):
 
 
 def main():
+    """
     print("Задание 1.1:")
     t_1_1()
 
@@ -290,6 +291,7 @@ def main():
 
     print("\nЗадание 5.2:")
     visualize_project_structure()
+    """
 
 
 if __name__ == "__main__":
