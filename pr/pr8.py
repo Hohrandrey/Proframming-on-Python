@@ -256,9 +256,119 @@ def visualize_project_structure(project_path='.'):
     dot.render(output_filename, format='png', view=True)
     print(f"Project structure visualization saved as {output_filename}.png")
 
-#ЗАДАНИЕ 7
+#ЗАДАНИЕ 6
 
+# Библиотека встроенных операций
+def add(vm):
+    b = vm.stack.pop()
+    a = vm.stack.pop()
+    vm.stack.append(a + b)
 
+def dot(vm):
+    value = vm.stack.pop()
+    print(value)
+
+LIB = {
+    '+': add,
+    '-': None,
+    '*': None,
+    '/': None,
+    '%': None,
+    '&': None,
+    '|': None,
+    '^': None,
+    '<': None,
+    '>': None,
+    '=': None,
+    '<<': None,
+    '>>': None,
+    'if': None,
+    'for': None,
+    '.': dot
+}
+
+OP_NAMES = {
+    0: 'push',
+    1: 'op',
+    2: 'call',
+    3: 'is',
+    4: 'to',
+    5: 'exit'
+}
+
+class VM:
+    def __init__(self, code):
+        self.stack = []
+        self.code = code
+        self.pc = code[0]  # точка входа
+
+    def run(self):
+        while self.pc < len(self.code):
+            instr = self.code[self.pc]
+            op_code = instr & 0b111
+            arg = instr >> 3
+            op = OP_NAMES.get(op_code, None)
+
+            if op == 'push':
+                self.stack.append(arg)
+
+            elif op == 'op':
+                lib_op = list(LIB.keys())[arg]
+                func = LIB.get(lib_op)
+                if func:
+                    func(self)
+                else:
+                    raise RuntimeError(f"Operation '{lib_op}' not implemented")
+
+            elif op == 'exit':
+                break
+
+            else:
+                raise RuntimeError(f"Unknown operation: {op}")
+
+            self.pc += 1
+
+def disasm(code):
+    OP_NAMES = {
+        0: 'push',
+        1: 'op',
+        2: 'call',
+        3: 'is',
+        4: 'to',
+        5: 'exit',
+    }
+
+    LIB_NAMES = [
+        '+', '-', '*', '/', '%',
+        '&', '|', '^',
+        '<', '>', '=',
+        '<<', '>>',
+        'if', 'for', '.'
+    ]
+
+    entry = code[0]
+    print("entry:")
+
+    i = entry
+    while i < len(code):
+        instr = code[i]
+        op_code = instr & 0b111          # 3 младших бита — код операции
+        arg = instr >> 3                 # Остальные 29 бит — аргумент
+        opname = OP_NAMES.get(op_code, f"unknown({op_code})")
+
+        # Отображение инструкции
+        if op_code == 1:  # op
+            if arg < len(LIB_NAMES):
+                op_arg = LIB_NAMES[arg]
+            else:
+                op_arg = f"<unknown op {arg}>"
+            print(f"  {i:>3}: {opname} '{op_arg}'")
+        else:
+            print(f"  {i:>3}: {opname} {arg}")
+
+        if opname == "exit":
+            break
+        i += 1
 
 
 def main():
@@ -292,7 +402,13 @@ def main():
     print("\nЗадание 5.2:")
     visualize_project_structure()
     """
+    print("\nЗадание 6.1:")
+    disasm([0, 16, 16, 1, 121, 5])
 
+    print("\nЗадание 6.2:")
+    code = [0, 16, 16, 1, 121, 5]  # push 2, push 2, op '+', op '.', exit
+    vm = VM(code)
+    vm.run()
 
 if __name__ == "__main__":
     main()
