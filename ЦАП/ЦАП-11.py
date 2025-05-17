@@ -25,15 +25,19 @@ class MooreMachine:
             },
             't7': {
                 'cast': [
-                    {'next_state': 't1', 'cond': {'var': 'c', 'value': 1}, 'output': 'S2'},
-                    {'next_state': 't0', 'cond': {'var': 'c', 'value': 0}, 'output': 'S1'}
+                    {'next_state': 't1', 'cond': {'var': 'c', 'value': 1},
+                     'output': 'S2'},
+                    {'next_state': 't0', 'cond': {'var': 'c', 'value': 0},
+                     'output': 'S1'}
                 ],
                 'swap': [{'next_state': 't6', 'cond': None, 'output': 'S2'}]
             },
             't0': {
                 'spin': [
-                    {'next_state': 't6', 'cond': {'var': 'x', 'value': 0}, 'output': 'S0'},
-                    {'next_state': 't4', 'cond': {'var': 'x', 'value': 1}, 'output': 'S2'}
+                    {'next_state': 't6', 'cond': {'var': 'x', 'value': 0},
+                     'output': 'S0'},
+                    {'next_state': 't4', 'cond': {'var': 'x', 'value': 1},
+                     'output': 'S2'}
                 ]
             },
             't4': {
@@ -43,58 +47,15 @@ class MooreMachine:
                 'hike': [{'next_state': 't6', 'cond': None, 'output': 'S0'}]
             }
         }
+
         self.current_state = 't3'
         self.variables = {'c': None, 'x': None}
-        self.methods_seen = defaultdict(int)
-        self._build_edge_counts()
-        self._build_reachability()
-
-    def _build_edge_counts(self):
-        self.out_edges_count = defaultdict(int)
-        for from_state, methods in self.transitions.items():
-            for method, transitions in methods.items():
-                self.out_edges_count[from_state] += len(transitions)
-
-    def _build_reachability(self):
-        self.reachability = defaultdict(set)
-        nodes = set(self.transitions.keys())
-        for node in nodes:
-            visited = set()
-            stack = [node]
-            while stack:
-                current = stack.pop()
-                if current not in visited:
-                    visited.add(current)
-                    if current in self.transitions:
-                        for method, transitions in self.transitions[current].items():
-                            for trans in transitions:
-                                if trans['next_state'] not in visited:
-                                    stack.append(trans['next_state'])
-            self.reachability[node] = visited
-
-    def has_max_out_edges(self):
-        if not self.out_edges_count:
-            return False
-        current_out = self.out_edges_count.get(self.current_state, 0)
-        max_out = max(self.out_edges_count.values())
-        return current_out == max_out
 
     def let_c(self, value):
         self.variables['c'] = value
 
     def let_x(self, value):
         self.variables['x'] = value
-
-    def link(self):
-        raise StateMachineException('unknown')
-
-    def seen_method(self, method_name):
-        return self.methods_seen.get(method_name, 0) > 0
-
-    def has_path_to(self, state):
-        if state not in self.reachability:
-            return False
-        return state in self.reachability.get(self.current_state, set())
 
     def visit(self):
         return self._execute_method('visit')
@@ -108,22 +69,16 @@ class MooreMachine:
     def hike(self):
         return self._execute_method('hike')
 
-    def close(self):
-        raise StateMachineException('unknown')
-
     def _execute_method(self, method_name):
         if method_name not in self.transitions.get(self.current_state, {}):
             raise StateMachineException('unsupported')
-
         transitions = self.transitions[self.current_state][method_name]
-
         for trans in transitions:
             cond = trans.get('cond')
-            if cond is None or self.variables.get(cond['var']) == cond['value']:
+            if (cond is None
+                    or self.variables.get(cond['var']) == cond['value']):
                 self.current_state = trans['next_state']
-                self.methods_seen[method_name] += 1
                 return trans['output']
-
         raise StateMachineException('unsupported')
 
 
@@ -131,23 +86,10 @@ class TestMooreMachine(unittest.TestCase):
     def setUp(self):
         self.machine = MooreMachine()
 
-    def test_has_max_out_edges_empty(self):
-        machine = MooreMachine()
-        machine.out_edges_count = {}
-        self.assertFalse(machine.has_max_out_edges())
-
-    def test_has_max_out_edges_normal(self):
-        self.machine.current_state = 't7'
-        self.assertTrue(self.machine.has_max_out_edges())
-
-        self.machine.current_state = 't3'
-        self.assertFalse(self.machine.has_max_out_edges())
-
     def test_execute_method_condition_branch(self):
         self.machine.current_state = 't7'
         self.machine.let_c(1)
         self.assertEqual(self.machine.cast(), 'S2')
-
         self.machine.current_state = 't7'
         self.machine.let_c(0)
         self.assertEqual(self.machine.cast(), 'S1')
@@ -161,44 +103,75 @@ class TestMooreMachine(unittest.TestCase):
             self.machine.visit()
         self.assertEqual(str(context.exception), 'unsupported')
 
-    def test_build_reachability(self):
-        self.assertTrue(self.machine.has_path_to('t7'))
-        self.assertTrue(self.machine.has_path_to('t0'))
-        self.assertTrue(self.machine.has_path_to('t4'))
-        self.assertTrue(self.machine.has_path_to('t5'))
-        self.assertTrue(self.machine.has_path_to('t6'))
-        self.assertFalse(self.machine.has_path_to('nonexistent'))
+    def test_spin_method(self):
+        with self.assertRaises(StateMachineException) as context:
+            self.machine.spin()
+        self.assertEqual(str(context.exception), 'unsupported')
+        self.machine.current_state = 't2'
+        self.assertEqual(self.machine.spin(), 'S2')
+        self.assertEqual(self.machine.current_state, 't1')
 
-    def test_reachability_empty_transitions(self):
-        machine = MooreMachine()
-        machine.current_state = 'non_existent_state'
-        self.assertFalse(machine.has_path_to('t1'))
-        self.assertIsInstance(machine.reachability, defaultdict)
-        self.assertIn('t3', machine.reachability)
-        self.assertNotIn('non_existent_state', machine.reachability)
-
-    def test_all_methods_coverage(self):
-        self.assertFalse(self.machine.seen_method('visit'))
-        self.machine.visit()
-        self.assertTrue(self.machine.seen_method('visit'))
-
-        self.machine.let_c(1)
+    def test_spin_method_with_conditions(self):
+        self.machine.current_state = 't7'
+        self.machine.let_c(0)
+        self.machine.cast()
         self.machine.let_x(0)
+        self.assertEqual(self.machine.spin(), 'S0')
+        self.assertEqual(self.machine.current_state, 't6')
+        self.machine.current_state = 't0'
+        self.machine.let_x(1)
+        self.assertEqual(self.machine.spin(), 'S2')
+        self.assertEqual(self.machine.current_state, 't4')
 
-        with self.assertRaises(StateMachineException):
-            self.machine.link()
+    def test_hike_method(self):
+        self.assertEqual(self.machine.hike(), 'S0')
+        self.assertEqual(self.machine.current_state, 't2')
+        self.machine.current_state = 't1'
+        self.assertEqual(self.machine.hike(), 'S2')
+        self.assertEqual(self.machine.current_state, 't6')
+        self.assertEqual(self.machine.hike(), 'S2')
+        self.assertEqual(self.machine.current_state, 't7')
 
-        with self.assertRaises(StateMachineException):
-            self.machine.close()
+    def test_hike_method_unsupported(self):
+        self.machine.current_state = 't4'
+        with self.assertRaises(StateMachineException) as context:
+            self.machine.hike()
+        self.assertEqual(str(context.exception), 'unsupported')
 
-    def test_edge_cases(self):
-        machine = MooreMachine()
-        machine.transitions = {}
-        machine._build_edge_counts()
-        machine._build_reachability()
-        self.assertFalse(machine.has_max_out_edges())
-        self.assertFalse(machine.has_path_to('any_state'))
+    def test_hike_method_in_t5(self):
+        self.machine.current_state = 't4'
+        self.machine.visit()
+        self.assertEqual(self.machine.hike(), 'S0')
+        self.assertEqual(self.machine.current_state, 't6')
 
+    def test_unsupported_method_in_current_state(self):
+        states_and_methods = [
+            ('t3', 'spin'), ('t3', 'cast'), ('t2', 'visit'), ('t2', 'hike'),
+            ('t1', 'spin'), ('t1', 'visit'), ('t6', 'spin'), ('t6', 'visit'),
+            ('t7', 'visit'), ('t0', 'hike'), ('t0', 'visit'), ('t4', 'hike'),
+            ('t4', 'spin'), ('t5', 'spin'), ('t5', 'visit'),
+        ]
+        for state, method in states_and_methods:
+            self.machine.current_state = state
+            with self.assertRaises(StateMachineException) as context:
+                getattr(self.machine, method)()
+            self.assertEqual(str(context.exception), 'unsupported')
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_unsupported_due_to_unmet_conditions(self):
+        self.machine.current_state = 't7'
+        self.machine.variables['c'] = None
+        with self.assertRaises(StateMachineException) as context:
+            self.machine.cast()
+        self.assertEqual(str(context.exception), 'unsupported')
+        self.machine.current_state = 't0'
+        self.machine.variables['x'] = 2
+        with self.assertRaises(StateMachineException) as context:
+            self.machine.spin()
+        self.assertEqual(str(context.exception), 'unsupported')
+
+    def test_unsupported_in_non_existent_state(self):
+        self.machine.current_state = 'non_existent_state'
+        for method in ['visit', 'cast', 'spin', 'hike']:
+            with self.assertRaises(StateMachineException) as context:
+                getattr(self.machine, method)()
+            self.assertEqual(str(context.exception), 'unsupported')
