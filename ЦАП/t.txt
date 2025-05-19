@@ -1,0 +1,4 @@
+удали class TestMooreMachine(unittest.TestCase): и сделай так, чтобы в функциях тестов был
+obj = main()
+
+def test содержит вызов всех тестов
