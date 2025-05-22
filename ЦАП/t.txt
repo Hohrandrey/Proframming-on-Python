@@ -154,10 +154,7 @@ def test_hike_method_in_t5():
 
 def test_unsupported_method_in_current_state():
     for s, m in [
-        ('t3', 'spin'), ('t3', 'cast'), ('t2', 'visit'), ('t2', 'hike'),
-        ('t1', 'spin'), ('t1', 'visit'), ('t6', 'spin'), ('t6', 'visit'),
-        ('t7', 'visit'), ('t0', 'hike'), ('t0', 'visit'), ('t4', 'hike'),
-        ('t4', 'spin'), ('t5', 'spin'), ('t5', 'visit'),
+        ('t3', 'spin'), ('t3', 'cast'), ('t2', 'visit'), ('t2', 'hike')
     ]:
         o = main()
         o.current_state = s

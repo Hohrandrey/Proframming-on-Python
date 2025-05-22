@@ -24,19 +24,15 @@ class MooreMachine:
             },
             't7': {
                 'cast': [
-                    {'next_state': 't1', 'cond': {'var': 'c', 'value': 1},
-                     'output': 'S2'},
-                    {'next_state': 't0', 'cond': {'var': 'c', 'value': 0},
-                     'output': 'S1'}
+                    {'next_state': 't1', 'cond': {'var': 'c', 'value': 1}, 'output': 'S2'},
+                    {'next_state': 't0', 'cond': {'var': 'c', 'value': 0}, 'output': 'S1'}
                 ],
                 'swap': [{'next_state': 't6', 'cond': None, 'output': 'S2'}]
             },
             't0': {
                 'spin': [
-                    {'next_state': 't6', 'cond': {'var': 'x', 'value': 0},
-                     'output': 'S0'},
-                    {'next_state': 't4', 'cond': {'var': 'x', 'value': 1},
-                     'output': 'S2'}
+                    {'next_state': 't6', 'cond': {'var': 'x', 'value': 0}, 'output': 'S0'},
+                    {'next_state': 't4', 'cond': {'var': 'x', 'value': 1}, 'output': 'S2'}
                 ]
             },
             't4': {
@@ -50,48 +46,27 @@ class MooreMachine:
         self.variables = {'c': None, 'x': None}
         self.executed_methods = set()
 
-    def let_c(self, v):
-        self.variables['c'] = v
-
-    def let_x(self, v):
-        self.variables['x'] = v
-
-    def visit(self):
-        return self._exec('visit')
-
-    def cast(self):
-        return self._exec('cast')
-
-    def spin(self):
-        return self._exec('spin')
-
-    def hike(self):
-        return self._exec('hike')
-
-    def link(self):
-        raise StateMachineException('unknown')
-
-    def close(self):
-        raise StateMachineException('unknown')
-
-    def seen_method(self, m):
-        return m in self.executed_methods
+    def let_c(self, v): self.variables['c'] = v
+    def let_x(self, v): self.variables['x'] = v
+    def visit(self): return self._exec('visit')
+    def cast(self): return self._exec('cast')
+    def spin(self): return self._exec('spin')
+    def hike(self): return self._exec('hike')
+    def link(self): raise StateMachineException('unknown')
+    def close(self): raise StateMachineException('unknown')
+    def seen_method(self, m): return m in self.executed_methods
 
     def has_max_out_edges(self):
-        cur = sum(len(m) for m in
-                  self.transitions.get(self.current_state, {}).values())
-        if not cur:
-            return False
-        max_edges = max(sum(len(m) for m in s.values())
-                        for s in self.transitions.values())
+        cur = sum(len(m) for m in self.transitions.get(self.current_state, {}).values())
+        if not cur: return False
+        max_edges = max(sum(len(m) for m in s.values()) for s in self.transitions.values())
         return cur == max_edges
 
     def has_path_to(self, target):
         visited, stack = set(), [self.current_state]
         while stack:
             state = stack.pop()
-            if state == target:
-                return True
+            if state == target: return True
             if state not in visited:
                 visited.add(state)
                 for mt in self.transitions.get(state, {}).values():
@@ -112,8 +87,7 @@ class MooreMachine:
         raise StateMachineException('unsupported')
 
 
-def main():
-    return MooreMachine()
+def main(): return MooreMachine()
 
 
 def test_execute_method_condition_branch():
